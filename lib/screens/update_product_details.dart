@@ -1,17 +1,21 @@
 import 'dart:convert';
 import 'package:curd_app/screens/product_list_view.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
+
+import '../modal/productModal.dart';
 import '../style/style.dart';
 
-class createFormScreen extends StatefulWidget {
-  const createFormScreen({super.key});
+class updateProductDetails extends StatefulWidget {
+  const updateProductDetails({super.key, required this.product});
+  final ProductModal product;
 
   @override
-  State<createFormScreen> createState() => _createFormScreenState();
+  State<updateProductDetails> createState() => _updateProductDetailsState();
 }
 
-class _createFormScreenState extends State<createFormScreen> {
+class _updateProductDetailsState extends State<updateProductDetails> {
   TextEditingController productNamecontroller = TextEditingController();
   TextEditingController productCodecontroller = TextEditingController();
   TextEditingController unitPricecontroller = TextEditingController();
@@ -21,7 +25,18 @@ class _createFormScreenState extends State<createFormScreen> {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  bool creatingProduct = false;
+  bool updateproductIndicator = false;
+
+  @override
+  void initState() {
+    productNamecontroller.text = widget.product.productName ?? "";
+    productCodecontroller.text = widget.product.productCode ?? "";
+    unitPricecontroller.text = widget.product.unitPrice ?? "";
+    qtycontroller.text = widget.product.quantity ?? "";
+    totalPicecontroller.text = widget.product.totalPrice ?? "";
+    imageurlcontroller.text = widget.product.image ?? "";
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -34,12 +49,12 @@ class _createFormScreenState extends State<createFormScreen> {
     super.dispose();
   }
 
-  Future<void> createProduct() async {
-    creatingProduct = true;
+  Future<void> updateProduct() async {
+    updateproductIndicator = true;
     setState(() {});
-    String createProductUrl =
-        "https://crud.teamrabbil.com/api/v1/CreateProduct";
-    Uri createProductUri = Uri.parse(createProductUrl);
+    String updateProductUrl =
+        "https://crud.teamrabbil.com/api/v1/UpdateProduct/${widget.product.id}";
+    Uri updateProductUri = Uri.parse(updateProductUrl);
 
     //prepare data
     Map<String, dynamic> inputData = {
@@ -54,7 +69,7 @@ class _createFormScreenState extends State<createFormScreen> {
     var encodeData = jsonEncode(inputData);
 
     Response response = await post(
-      createProductUri,
+      updateProductUri,
       body: encodeData,
       headers: {'content-type': 'application/json'},
     );
@@ -80,7 +95,7 @@ class _createFormScreenState extends State<createFormScreen> {
       );
     }
 
-    creatingProduct = false;
+    updateproductIndicator = false;
     setState(() {});
   }
 
@@ -97,7 +112,7 @@ class _createFormScreenState extends State<createFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Create A product"),
+        title: const Text("Edit A product Details"),
         centerTitle: true,
         backgroundColor: tealColor,
         foregroundColor: whiteColor,
@@ -119,6 +134,7 @@ class _createFormScreenState extends State<createFormScreen> {
                   if (value == null || value.trim().isEmpty) {
                     return "Please write Your Product name";
                   }
+                  return null;
                 },
               ),
               const SizedBox(
@@ -133,6 +149,7 @@ class _createFormScreenState extends State<createFormScreen> {
                   if (value == null || value.trim().isEmpty) {
                     return "Please write Your Product name";
                   }
+                  return null;
                 },
               ),
               const SizedBox(
@@ -147,6 +164,7 @@ class _createFormScreenState extends State<createFormScreen> {
                   if (value == null || value.trim().isEmpty) {
                     return "Please write Your Product name";
                   }
+                  return null;
                 },
               ),
               const SizedBox(
@@ -161,6 +179,7 @@ class _createFormScreenState extends State<createFormScreen> {
                   if (value == null || value.trim().isEmpty) {
                     return "Please write Your Product name";
                   }
+                  return null;
                 },
               ),
               const SizedBox(
@@ -175,6 +194,7 @@ class _createFormScreenState extends State<createFormScreen> {
                   if (value == null || value.trim().isEmpty) {
                     return "Please write Your Product name";
                   }
+                  return null;
                 },
               ),
               const SizedBox(
@@ -189,18 +209,19 @@ class _createFormScreenState extends State<createFormScreen> {
                   if (value == null || value.trim().isEmpty) {
                     return "Please write Your Product name";
                   }
+                  return null;
                 },
               ),
               const SizedBox(
                 height: 20,
               ),
               Visibility(
-                visible: creatingProduct == false,
+                visible: updateproductIndicator == false,
                 replacement: const Center(child: CircularProgressIndicator()),
                 child: ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
-                      createProduct();
+                      updateProduct();
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -210,7 +231,7 @@ class _createFormScreenState extends State<createFormScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       )),
-                  child: const Text("Submit"),
+                  child: const Text("Done"),
                 ),
               ),
             ],

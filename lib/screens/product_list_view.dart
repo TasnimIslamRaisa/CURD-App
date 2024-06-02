@@ -1,16 +1,16 @@
 import 'dart:convert';
 
-import 'package:curd_app/style/style.dart';
+import 'package:curd_app/screens/update_product_details.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 
 import '../modal/productModal.dart';
+import '../style/style.dart';
 import 'createformScreen.dart';
-int count=1;
+
+int count = 1;
+
 class ProductListView extends StatefulWidget {
-
-
-
   ProductListView({super.key});
 
   @override
@@ -18,72 +18,77 @@ class ProductListView extends StatefulWidget {
 }
 
 class _ProductListViewState extends State<ProductListView> {
-
-  bool productListComing=false;
-  List<productModal> productList=[];
-
+  bool productListComing = false;
+  List<ProductModal> productList = [];
 
   @override
   void initState() {
     super.initState();
     getProduct();
-  }  @override
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:const Text("Product List"),
+        title: const Text("Product List"),
         centerTitle: true,
         backgroundColor: tealColor,
         foregroundColor: whiteColor,
       ),
       body: RefreshIndicator(
         //it will get the new data bu calling Rest API
-        onRefresh:getProduct,
+        onRefresh: getProduct,
         child: Visibility(
-          visible: productListComing==false,
-            replacement:const Center(
-                child: CircularProgressIndicator(),
-            ) ,
-            child:ListView.separated(
+            visible: productListComing == false,
+            replacement: const Center(
+              child: CircularProgressIndicator(),
+            ),
+            child: ListView.separated(
               itemCount: productList.length,
-                itemBuilder: (context,index){
-                  //getProduct();
-                  //it will show the products in list.so we have to design out listTile here
-                  return listTileDesign(productList[index]);
-                },
-                separatorBuilder:(_,__)=>const Divider(),
+              itemBuilder: (context, index) {
+                //it will show the products in list.so we have to design out listTile here
+                // Reverse the list before displaying
 
-            )
-        ),
-
-
+                return listTileDesign(productList.reversed.toList()[index]);
+              },
+              separatorBuilder: (_, __) => const Divider(),
+            )),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           print(count++);
           Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context)=>createFormScreen(),
-            )
-          );
+              context,
+              MaterialPageRoute(
+                builder: (context) => const createFormScreen(),
+              ));
         },
-        foregroundColor:whiteColor,
-        backgroundColor:tealColor,
-        child:const Icon(Icons.add),
-  ),
+        foregroundColor: whiteColor,
+        backgroundColor: tealColor,
+        child: const Icon(Icons.add),
+      ),
     );
   }
 
-  Widget listTileDesign(productModal product){
-    return  ListTile(
-      leading: product.img != null
-          ? Image.network(product.img!)
-          : Text("Image Not Found"),
-      title: Text(product.productName ??"Unknown"),
-      subtitle:  Wrap(
+  Widget listTileDesign(ProductModal product) {
+    return ListTile(
+      leading: Container(
+        color: tealColor,
+        width: 50,
+        height: 50,
+      ),
+      /*Image.network(
+        product.image ?? 'https://via.placeholder.com/150',
+        width: 50,
+        height: 50,
+        fit: BoxFit.cover,
+      ),*/
+      title: Text(product.productName ?? "Unknown"),
+      subtitle: Wrap(
         children: [
           Text("Unit Price : ${product.unitPrice}/-"),
-          Text("Quantity:${product.qty}/-"),
+          Text("Quantity:${product.quantity}/-"),
           Text("Total Price:${product.totalPrice}/-"),
         ],
       ),
@@ -91,23 +96,26 @@ class _ProductListViewState extends State<ProductListView> {
         children: [
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: (){
-              final result= Navigator.push(
+            onPressed: () {
+              final result = Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => createFormScreen()));
-              if(result==true){
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          updateProductDetails(product: product)));
+              if (result == true) {
                 getProduct();
               }
-
             },
           ),
           IconButton(
-            onPressed:(){
-              if (product.productId != null) {
-                _showDeleteConfirmationDialog(product.productId!);
+            onPressed: () {
+              if (product.id != null) {
+                _showDeleteConfirmationDialog(product.id!);
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Product ID is missing. Cannot delete this product.')),
+                  const SnackBar(
+                      content: Text(
+                          'Product ID is missing. Cannot delete this product.')),
                 );
               }
             },
@@ -115,67 +123,59 @@ class _ProductListViewState extends State<ProductListView> {
           ),
         ],
       ),
-
     );
   }
 
-  Future<void> getProduct() async{
-    productListComing=true;
+  Future<void> getProduct() async {
+    productListComing = true;
     setState(() {});
 
     productList.clear();
 
-    const String productListUrl="https://crud.teamrabbil.com/api/v1/ReadProduct";
-    Uri productListUri=Uri.parse(productListUrl);
-    Response response =await get(productListUri);  // here we have to add http dependencies
-    var code=response.statusCode;
-    var body=response.body;
+    const String productListUrl =
+        "https://crud.teamrabbil.com/api/v1/ReadProduct";
+    Uri productListUri = Uri.parse(productListUrl);
+    Response response =
+        await get(productListUri); // here we have to add http dependencies
+    var code = response.statusCode;
+    var body = response.body;
     print(code);
     print(body);
     //step 1 => data decode
     //step 2 => get the list
     //step 3 loop over the list we got in step 2 to add the data
 
-
-    if(code==200){
-      final decodeData=jsonDecode(body);
-      final jsonProductList=decodeData['data'];
-      for(Map<String,dynamic> item in jsonProductList){
-        //productModal product=productModal.fromJson(item);
-        productModal product=productModal(
-            productName: item['ProductName']??'',
-            productCode: item['ProductCode']??'',
-            img: item['Img'],
-            unitPrice: item['unitPrice'],
-            qty: item['Qty'],
-            totalPrice: item['TotalPrice'],
-            productId: item['_id']
-        );
+    if (code == 200) {
+      final decodeData = jsonDecode(body);
+      final jsonProductList = decodeData['data'];
+      for (Map<String, dynamic> item in jsonProductList) {
+        ProductModal product = ProductModal.fromJson(item);
         productList.add(product);
       }
       print("get succesfully");
     } else {
       print("Get product list failed! Try again.");
     }
-    productListComing=false;
+    productListComing = false;
     setState(() {});
   }
 
-  Future<void> deleteProduct(String productId) async{
-    productListComing=true;
-    setState(() {
-
-    });
-    String deleteProductUrl="https://crud.teamrabbil.com/api/v1/DeleteProduct/$productId";
-    Uri deleteProductUri=Uri.parse(deleteProductUrl);
-    Response response =await get(deleteProductUri);
-    var code=response.statusCode;
-    var body=response.body;
+  Future<void> deleteProduct(String productId) async {
+    productListComing = true;
+    setState(() {});
+    String deleteProductUrl =
+        "https://crud.teamrabbil.com/api/v1/DeleteProduct/$productId";
+    Uri deleteProductUri = Uri.parse(deleteProductUrl);
+    Response response = await get(deleteProductUri);
+    var code = response.statusCode;
+    var body = response.body;
     print(code);
     print(body);
-    if(response==200){
+    if (code == 200) {
       getProduct();
-      print("delete successfully");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Delete successfully')),
+      );
     } else {
       productListComing = false;
       setState(() {});
@@ -191,7 +191,8 @@ class _ProductListViewState extends State<ProductListView> {
       builder: (context) {
         return AlertDialog(
           title: const Text('Delete'),
-          content: const Text('Are you sure that you want to delete this product?'),
+          content:
+              const Text('Are you sure that you want to delete this product?'),
           actions: [
             TextButton(
               onPressed: () {
@@ -211,36 +212,4 @@ class _ProductListViewState extends State<ProductListView> {
       },
     );
   }
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
