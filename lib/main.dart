@@ -1,5 +1,5 @@
-import 'package:curd_app/screens/curdApp.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:curd_app/curdApp.dart';
 
 void main() {
   runApp(const curdApp());

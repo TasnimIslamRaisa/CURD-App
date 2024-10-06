@@ -136,7 +136,7 @@ class _ProductListViewState extends State<ProductListView> {
         "https://crud.teamrabbil.com/api/v1/ReadProduct";
     Uri productListUri = Uri.parse(productListUrl);
     Response response =
-        await get(productListUri); // here we have to add http dependencies
+    await get(productListUri); // here we have to add http dependencies
     var code = response.statusCode;
     var body = response.body;
     print(code);
@@ -192,7 +192,7 @@ class _ProductListViewState extends State<ProductListView> {
         return AlertDialog(
           title: const Text('Delete'),
           content:
-              const Text('Are you sure that you want to delete this product?'),
+          const Text('Are you sure that you want to delete this product?'),
           actions: [
             TextButton(
               onPressed: () {
